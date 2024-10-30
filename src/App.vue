@@ -3,11 +3,11 @@ main
   .containerCentral
     .quadro
       .linha(v-for="i in linhas")
-        span(:class="!palavraReferencia.includes(i.coluna01.toUpperCase()) ? 'nada' : palavraReferencia.split('')[0] === i.coluna01.toUpperCase() ? 'certo' : 'quase'") {{ i.coluna01.toUpperCase() }}
-        span(:class="!palavraReferencia.includes(i.coluna02.toUpperCase()) ? 'nada' : palavraReferencia.split('')[1] === i.coluna02.toUpperCase() ? 'certo' : 'quase'") {{ i.coluna02.toUpperCase() }}
-        span(:class="!palavraReferencia.includes(i.coluna03.toUpperCase()) ? 'nada' : palavraReferencia.split('')[2] === i.coluna03.toUpperCase() ? 'certo' : 'quase'") {{ i.coluna03.toUpperCase() }}
-        span(:class="!palavraReferencia.includes(i.coluna04.toUpperCase()) ? 'nada' : palavraReferencia.split('')[3] === i.coluna04.toUpperCase() ? 'certo' : 'quase'") {{ i.coluna04.toUpperCase() }}
-        span(:class="!palavraReferencia.includes(i.coluna05.toUpperCase()) ? 'nada' : palavraReferencia.split('')[4] === i.coluna05.toUpperCase() ? 'certo' : 'quase'") {{ i.coluna05.toUpperCase() }}
+        span(:class="!i.verificada ? '' : !palavraReferencia.includes(i.coluna01.toUpperCase()) ? 'nada' : palavraReferencia.split('')[0] === i.coluna01.toUpperCase() ? 'certo' : 'quase'") {{ i.coluna01.toUpperCase() }}
+        span(:class="!i.verificada ? '' : !palavraReferencia.includes(i.coluna02.toUpperCase()) ? 'nada' : palavraReferencia.split('')[1] === i.coluna02.toUpperCase() ? 'certo' : 'quase'") {{ i.coluna02.toUpperCase() }}
+        span(:class="!i.verificada ? '' : !palavraReferencia.includes(i.coluna03.toUpperCase()) ? 'nada' : palavraReferencia.split('')[2] === i.coluna03.toUpperCase() ? 'certo' : 'quase'") {{ i.coluna03.toUpperCase() }}
+        span(:class="!i.verificada ? '' : !palavraReferencia.includes(i.coluna04.toUpperCase()) ? 'nada' : palavraReferencia.split('')[3] === i.coluna04.toUpperCase() ? 'certo' : 'quase'") {{ i.coluna04.toUpperCase() }}
+        span(:class="!i.verificada ? '' : !palavraReferencia.includes(i.coluna05.toUpperCase()) ? 'nada' : palavraReferencia.split('')[4] === i.coluna05.toUpperCase() ? 'certo' : 'quase'") {{ i.coluna05.toUpperCase() }}
     
     .teclado
       .linha
@@ -17,33 +17,114 @@ main
       .linha
         span(v-for="letra in ['Z', 'X', 'C', 'V', 'B', 'N', 'M']" @click="selecionarLetra(letra)") {{ letra }}
       .linha
-        span(v-for="letra in ['Shift', 'Space', 'Enter', 'Backspace']" @click="selecionarLetra(letra)") {{ letra }}
+        span(v-for="letra in [ 'Enter', 'Backspace', 'Reiniciar Jogo']" @click="acoesEspeciais(letra)") {{ letra }}
 </template>
 <script lang="ts" setup>
-import { computed, reactive } from "vue";
+import { reactive, ref, onMounted, onUnmounted } from "vue";
 
 const palavraReferencia = "MENGO";
+const linhaAtual = ref(0);
 
-const fimDeJogo = computed(() => {
-  return linhas[5].coluna05 !== " ";
-});
+const fimDeJogo = ref(false);
 
 const linhas = reactive([
-  { coluna01: " ", coluna02: " ", coluna03: " ", coluna04: " ", coluna05: " " },
-  { coluna01: " ", coluna02: " ", coluna03: " ", coluna04: " ", coluna05: " " },
-  { coluna01: " ", coluna02: " ", coluna03: " ", coluna04: " ", coluna05: " " },
-  { coluna01: " ", coluna02: " ", coluna03: " ", coluna04: " ", coluna05: " " },
-  { coluna01: " ", coluna02: " ", coluna03: " ", coluna04: " ", coluna05: " " },
-  { coluna01: " ", coluna02: " ", coluna03: " ", coluna04: " ", coluna05: " " },
+  {
+    coluna01: " ",
+    coluna02: " ",
+    coluna03: " ",
+    coluna04: " ",
+    coluna05: " ",
+    verificada: false,
+  },
+  {
+    coluna01: " ",
+    coluna02: " ",
+    coluna03: " ",
+    coluna04: " ",
+    coluna05: " ",
+    verificada: false,
+  },
+  {
+    coluna01: " ",
+    coluna02: " ",
+    coluna03: " ",
+    coluna04: " ",
+    coluna05: " ",
+    verificada: false,
+  },
+  {
+    coluna01: " ",
+    coluna02: " ",
+    coluna03: " ",
+    coluna04: " ",
+    coluna05: " ",
+    verificada: false,
+  },
+  {
+    coluna01: " ",
+    coluna02: " ",
+    coluna03: " ",
+    coluna04: " ",
+    coluna05: " ",
+    verificada: false,
+  },
+  {
+    coluna01: " ",
+    coluna02: " ",
+    coluna03: " ",
+    coluna04: " ",
+    coluna05: " ",
+    verificada: false,
+  },
 ]);
+
+onMounted(() => {
+  window.addEventListener("keydown", monitoraTeclado);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("keydown", monitoraTeclado);
+});
 
 function selecionarLetra(letra: string) {
   if (fimDeJogo.value) return;
-  linhas.find((linha) => {
-    const coluna = Object.keys(linha).find((coluna) => linha[coluna] === " ");
-    console.log(linha[coluna]);
-    if (linha[coluna] === " ") return (linha[coluna] = letra);
-  });
+  const coluna = Object.keys(linhas[linhaAtual.value]).find(
+    (coluna) => linhas[linhaAtual.value][coluna] === " "
+  );
+  if (coluna) return (linhas[linhaAtual.value][coluna] = letra);
+}
+
+function acoesEspeciais(letra: string) {
+  if (letra.toUpperCase() === "ENTER") {
+    linhas[linhaAtual.value].verificada = true;
+    if (
+      Object.values(linhas[linhaAtual.value]).slice(0, 5).join("") ===
+        palavraReferencia ||
+      linhas[5].coluna05 !== " "
+    )
+      fimDeJogo.value = true;
+    linhaAtual.value++;
+  } else if (letra.toUpperCase() === "BACKSPACE") {
+    const colunas = Object.keys(linhas[linhaAtual.value]);
+    for (let j = colunas.length - 1; j >= 0; j--) {
+      if (
+        linhas[linhaAtual.value][colunas[j]] !== " " &&
+        colunas[j] !== "corPalavra"
+      ) {
+        linhas[linhaAtual.value][colunas[j]] = " ";
+        return;
+      }
+    }
+  } else window.location.reload();
+}
+
+function monitoraTeclado(event: KeyboardEvent) {
+  const key = event.key.toUpperCase();
+  if (key.length === 1 && key >= "A" && key <= "Z") {
+    selecionarLetra(key);
+  } else if (key === "ENTER" || key === "BACKSPACE") {
+    acoesEspeciais(key);
+  }
 }
 </script>
 <style lang="css">
